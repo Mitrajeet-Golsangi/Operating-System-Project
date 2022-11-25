@@ -8,7 +8,7 @@
 using namespace std;
 
 // Keep Track of the current line in io device => Useful for reading the data from data cards
-int line_count = 0;
+int line_count = 1;
 
 /**
  * @brief Constructor for IOHandler class which reads the input and output files using initializer list
@@ -50,23 +50,24 @@ void IOHandler::read_card()
         }
         else if (buffer.substr(0, 4) == "$DTA")
         {
-            output_file << "Data Card Encountered ! Starting User Program Execution"
-                        << "\n";
-            line_count++;
+            output_file << "Data Card Encountered ! Starting User Program Execution\n";
+
             cpu.start_execution();
             program_card = false;
         }
         else if (buffer.substr(0, 4) == "$END")
         {
-            output_file << "Ended Job " << buffer.substr(4, 4) << "\n\n";
+            program_card = true;
+            output_file << "Ended Job " << buffer.substr(4, 4) << "\n\n\n";
         }
         else if (program_card)
         {
-            output_file << "Loading Program to Main Memory ..."
-                        << "\n";
+            output_file << "Loading Program to Main Memory ...\n";
+
             cpu.load_program(buffer, count);
             count = buffer.length() + count;
         }
+        else line_count--;
         line_count++;
     }
 }
@@ -111,7 +112,9 @@ void IOHandler::write(string data)
     for (size_t i = 0; i < data.length(); i++)
     {
         if (data[i] != '\000')
+        {
             output_file << data[i];
+        }
         else
             output_file << '*';
     }

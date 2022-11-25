@@ -8,7 +8,7 @@ using namespace std;
 
 /**
  * @brief Calculate the size of blocks needed for GD and PD operations
- * 
+ *
  * @param length length of the data to be loaded in memory
  * @return size of block needed to store data
  */
@@ -50,9 +50,6 @@ void VM::load_program(string data, int start_addr)
  */
 void VM::start_execution()
 {
-    // Make Instruction counter zero
-    ic = 0;
-
     while (!terminate)
     {
         // Fetch the instruction in instruction register
@@ -91,11 +88,12 @@ void VM::start_execution()
 
         else if (opcode == "BT")
             branch_on_true(operand);
-        
 
-        else if (opcode == "H" || opcode == "H*")
+        if (ir[0] == 'H')
+        {
             SI = 3;
-        MOS(operand, "");
+            MOS(operand, "");
+        }
     }
 }
 
@@ -160,30 +158,33 @@ void VM::MOS(int mem_loc, string data)
 
 /**
  * @brief Clean the entire machine and make it ready for a new job
- * This method :
- * 1. Resets the Main memory
- * 2. Cleans the Instruction Register
- * 3. Sets the toggle register to false
- * 4. Sets the Instruction Counter to zero
- * 5. Resets the 40 byte buffer
  *
  */
 void VM::clean()
 {
-    // 1. Reset the Main memory
-    memset(mem, 0, sizeof(mem));
+    // 1. Cleans the General Purpose Register
+    memset(r, 0, sizeof(r));
 
     // 2. Cleans the Instruction Register
     memset(ir, 0, sizeof(ir));
 
-    // 3. Sets the toggle register to false
-    c = false;
-
-    // 4. Sets the Instruction Counter to zero
+    // 3. Sets the Instruction Counter to zero
     ic = 0;
 
-    // 5. Resets the 40 byte buffer
-    IOHandler().reset_buffer();
+    // 4. Sets the toggle register to false
+    c = false;
+
+    // 5. Reset the Main memory
+    memset(mem, 0, sizeof(mem));
+
+    // 6. Reset the SI interrupt
+    SI = 0;
+
+    // 7. Resets the termination condition set by previous program
+    terminate = false;
+
+    // 6. Resets the 40 byte buffer
+    io->reset_buffer();
 }
 
 /**
