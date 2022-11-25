@@ -1,13 +1,30 @@
-#include <iostream>
-#include <fstream>
-#include <io.hpp>
-#include <cpu.hpp>
 #include <cstring>
+#include <fstream>
+#include <iostream>
+
+#include "cpu.hpp"
+#include "io.hpp"
 
 using namespace std;
 
 // Keep Track of the current line in io device => Useful for reading the data from data cards
 int line_count = 0;
+
+/**
+ * @brief Constructor for IOHandler class which reads the input and output files using initializer list
+ *
+ */
+IOHandler::IOHandler() : input_file("../IO/inp.txt"), output_file("../IO/out.txt") {}
+
+/**
+ * @brief Destructor for IOHandler which closes the input and output files
+ *
+ */
+IOHandler::~IOHandler()
+{
+    input_file.close();
+    output_file.close();
+}
 
 /**
  * @brief Read the input from the provided Cards and perform required actions
@@ -20,60 +37,58 @@ int line_count = 0;
  */
 void IOHandler::read_card()
 {
-
-    bool data_card = false;
-    VM cpu = VM();
-
-    ifstream input_file("../IO/inp.txt");
+    VM cpu = VM(this);
+    bool program_card = true;
+    const char *log;
 
     while (input_file >> buffer)
     {
         if (buffer.substr(0, 4) == "$AMJ")
         {
-            cout << "Started Job " << buffer.substr(4, 4) << endl;
+            output_file << "Started Job " << buffer.substr(4, 4) << "\n";
             cpu.clean();
         }
         else if (buffer.substr(0, 4) == "$DTA")
         {
-            cout << "Data Card Encountered ! Starting User Program Execution" << endl;
-            data_card = true;
+            output_file << "Data Card Encountered ! Starting User Program Execution"
+                        << "\n";
             line_count++;
             cpu.start_execution();
+            program_card = false;
         }
         else if (buffer.substr(0, 4) == "$END")
         {
-            cout << "Ended Job " << buffer.substr(4, 4) << endl;
-            data_card = false;
+            output_file << "Ended Job " << buffer.substr(4, 4) << "\n\n";
         }
-        else if (data_card)
+        else if (program_card)
         {
-            cout << "Data" << endl;
-        }
-        else
-        {
-            cout << "Loading Program to Main Memory ..." << endl;
+            output_file << "Loading Program to Main Memory ..."
+                        << "\n";
             cpu.load_program(buffer, count);
             count = buffer.length() + count;
         }
         line_count++;
     }
-
-    input_file.close();
 }
 
+/**
+ * @brief Read a specific data line
+ *
+ * @return string : data read from the input card
+ */
 string IOHandler::read_data()
 {
-    ifstream input_file("../IO/inp.txt");
-    
-    for (int i = 0; i < line_count + 1 && getline(input_file, buffer); i++)
+    string data;
+
+    for (int i = 1; i != input_file.eof() && getline(input_file, buffer); i++)
     {
-        if (i == line_count)
+        if (i == line_count + 1)
         {
+            data += buffer;
             line_count++;
-            return buffer;
+            return data;
         }
     }
-    input_file.close();
 }
 
 /**
@@ -84,4 +99,21 @@ void IOHandler::reset_buffer()
 {
     buffer = "";
     count = 0;
+}
+
+/**
+ * @brief Write data to the output file
+ *
+ * @param data String data the has to be written
+ */
+void IOHandler::write(string data)
+{
+    for (size_t i = 0; i < data.length(); i++)
+    {
+        if (data[i] != '\000')
+            output_file << data[i];
+        else
+            output_file << '*';
+    }
+    output_file << '\n';
 }

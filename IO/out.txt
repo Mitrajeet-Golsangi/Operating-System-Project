@@ -1,0 +1,7 @@
+Started Job 0002
+Loading Program to Main Memory ...
+Program = GD20GD30GD40GD50LR20CR30BT09PD50H***PD40H***
+Data Card Encountered ! Starting User Program Execution
+NOTSAME*********************************
+Ended Job 0002
+
