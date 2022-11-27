@@ -1,16 +1,18 @@
 Started Job 0001
 Loading Program to Main Memory ...
-Program = GD10PD10H
+Program = GD10PD10H***
 Data Card Encountered ! Starting User Program Execution
 HelloWorld!*****************************
+------------------------- No Error -------------------------
 Ended Job 0001
 
 
-Started Job 0002
+Started Job 0003
 Loading Program to Main Memory ...
 Program = GD20GD30GD40GD50LR20CR30BT09PD50H***PD40H***
 Data Card Encountered ! Starting User Program Execution
 SAME*AME********************************
-Ended Job 0002
+------------------------- No Error -------------------------
+Ended Job 0003
 
 

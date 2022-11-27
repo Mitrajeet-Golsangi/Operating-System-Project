@@ -4,6 +4,7 @@
 
 #include "cpu.hpp"
 #include "io.hpp"
+#include "pcb.hpp"
 
 using namespace std;
 
@@ -39,24 +40,44 @@ void IOHandler::read_card()
 {
     VM cpu = VM(this);
     bool program_card = true;
-    const char *log;
+    
+    PCB pcb = PCB();
 
     while (input_file >> buffer)
     {
         if (buffer.substr(0, 4) == "$AMJ")
         {
             output_file << "Started Job " << buffer.substr(4, 4) << "\n";
+
+            // Create PCB for the process
+            pcb = PCB(
+                stoi(buffer.substr(8, 4)), 
+                stoi(buffer.substr(12, 4)),
+                stoi(buffer.substr(4, 4))
+            );
+
+            // Clean Virtual Machine for new Job
             cpu.clean();
+            
+            //allocate frame for page table and initialize the ptr for the same
+            cpu.initialize_page_table();                        
         }
         else if (buffer.substr(0, 4) == "$DTA")
         {
             output_file << "Data Card Encountered ! Starting User Program Execution\n";
 
-            cpu.start_execution();
+            cpu.start_execution(pcb);
             program_card = false;
         }
         else if (buffer.substr(0, 4) == "$END")
         {
+            // Raise Out of Data Error
+            if (!cpu.get_terminate())
+            {
+                cpu.set_em(1);
+                cpu.set_terminate(true);
+                cpu.display_error();
+            }
             program_card = true;
             output_file << "Ended Job " << buffer.substr(4, 4) << "\n\n\n";
         }
@@ -64,10 +85,13 @@ void IOHandler::read_card()
         {
             output_file << "Loading Program to Main Memory ...\n";
 
+            //Load the program using the logical address            
             cpu.load_program(buffer, count);
+
             count = buffer.length() + count;
         }
-        else line_count--;
+        else
+            line_count--;
         line_count++;
     }
 }
@@ -90,6 +114,7 @@ string IOHandler::read_data()
             return data;
         }
     }
+    return "";
 }
 
 /**

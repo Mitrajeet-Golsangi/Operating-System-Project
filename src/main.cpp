@@ -3,7 +3,7 @@
 #include <cpu.hpp>
 #include <io.hpp>
 
-int main(int argc, char *argv[])
+int main()
 {
 	system("cls");
 	IOHandler io = IOHandler();
